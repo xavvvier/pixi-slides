@@ -11,12 +11,10 @@ let Application = PIXI.Application,
    TextureCache = PIXI.utils.TextureCache;
 
 //Create a Pixi Application
-let app = new Application(
-   {
-      width: window.innerWidth, 
-      height: window.innerHeight
-   }
-);
+let app = new Application({
+   width: window.innerWidth, 
+   height: window.innerHeight
+});
 
 let player;
 //Set the game state 
@@ -29,8 +27,6 @@ let imageNames = {
 
 //Add the canvas to the document
 document.body.appendChild(app.view);
-
-app.renderer.backgroundColor = 0x061639;
 
 //load images and call the setup function when done
 loader.add([

@@ -19,18 +19,26 @@ export class Player {
       }
       //Create the pixi animated sprite
       this.sprite = this.sprites['idle'];
-      this.sprite.x = 200;
-      this.sprite.y = 200;
+      this.sprite.x = 50;
+      this.sprite.y = stage.height - 50;
       this.sprite.visible = true;
       this.sprite.play();
    }
 
    update(){
-      this.sprite.x += this.vx;
-      if(this.vx == 0){
-         this.switchToSprite('idle');
-      } else {
-         this.switchToSprite('run');
+      //Get the sprite's parent Container, usually is the same stage
+      let container = this.sprite.parent;
+      let min = 40,
+         max = container.width - 40,
+         newXPosition = this.sprite.x + this.vx;
+      //If the player is too close (40px) to the borders, don't move it
+      if(newXPosition > min && newXPosition < max){
+         this.sprite.x = newXPosition;
+         if(this.vx == 0){
+            this.switchToSprite('idle');
+         } else {
+            this.switchToSprite('run');
+         }
       }
    }
 
