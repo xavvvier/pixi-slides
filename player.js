@@ -1,9 +1,11 @@
+import {configuration} from './configuration.js';
+
 export class Player {
 
    vx = 0;
    speed = 2;
 
-   constructor(spriteSheet, stage) {
+   constructor(spriteSheet, container) {
       this.spriteSheet = spriteSheet;
       this.sprites = {};
       let animations = ['idle', 'run'];
@@ -15,22 +17,22 @@ export class Player {
          this.sprites[anim].anchor.set(0.5);
          this.sprites[anim].visible = false;
          this.sprites[anim].animationSpeed = 0.2;
-         stage.addChild(this.sprites[anim]);
+         container.addChild(this.sprites[anim]);
          // this.sprites[anim].scale.set(1.5);
       }
       //Create the pixi animated sprite
       this.sprite = this.sprites['idle'];
-      this.sprite.x = 50;
-      this.sprite.y = 50;
+      this.sprite.x = 40;
+      this.sprite.y = 432;
       this.sprite.visible = true;
       this.sprite.play();
    }
 
    update(){
-      //Get the sprite's parent Container, usually is the same stage
+      //Get the sprite's parent Container, usually is the same slideContainer
       let container = this.sprite.parent;
-      let min = 40,
-         max = container.width - 40,
+      let min = 30,
+         max = configuration.size.width - 30,
          newXPosition = this.sprite.x + this.vx;
       //If the player is too close (40px) to the borders, don't move it
       if(newXPosition > min && newXPosition < max){

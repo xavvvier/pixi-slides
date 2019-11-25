@@ -8,11 +8,13 @@ let Application = PIXI.Application,
    Text = PIXI.Text,
    resources = loader.resources,
    Sprite = PIXI.Sprite,
+   Container = PIXI.Container,
    Rectangle = PIXI.Rectangle,
    Texture = PIXI.Texture,
    TextureCache = PIXI.utils.TextureCache;
 
 let target = document.getElementById('game');
+let slideContainer;
 
 let size = configuration.size;
 //Create a Pixi Application
@@ -23,7 +25,8 @@ let player;
 let state = play;
 
 let imageNames = {
-   player: 'images/player.json'
+   player: 'images/player.json',
+   terrain: 'images/terrain.json'
 }
 
 //Add the canvas to the document
@@ -32,6 +35,7 @@ target.appendChild(app.view);
 //load images and call the setup function when done
 loader.add([
    imageNames.player,
+   imageNames.terrain,
    'images/background/blue.png',
    'images/background/brown.png',
    'images/background/gray.png',
@@ -42,9 +46,11 @@ loader.add([
 ]).load(setup);
 
 function setup(){
-   drawSlide();
-   addPlayer();
+   slideContainer = drawSlide(0);
+   drawTerrain(slideContainer);
+   addPlayer(slideContainer);
 
+   app.stage.addChild(slideContainer);
    app.ticker.add(delta => gameLoop(delta));
    let left = keyboard("ArrowLeft"),
       up = keyboard("ArrowUp"),
@@ -56,8 +62,29 @@ function setup(){
    left.release = () => { player.stopMoving(); }
 }
 
-function drawSlide() {
+function drawTerrain(container) {
    let slide = configuration.slides[0];
+   let terrain = slide.terrain;
+   let spriteMap = terrain.sprites;
+   let spriteSize = 16; /*expecting a square sprite*/
+   let columns = Math.floor(configuration.size.width/spriteSize); /*how many columns there are*/
+   for (var i = 0, len = terrain.map.length; i < len; i++) {
+      var x = (i % columns) * spriteSize;
+      var y = Math.floor(i / columns) * spriteSize;
+      var spriteCode = terrain.map[i];
+      if(spriteCode !== '') {
+         let spriteName = spriteMap[spriteCode];
+         var sprite = new Sprite(resources[imageNames.terrain].textures[spriteName]);
+         sprite.x = x;
+         sprite.y = y;
+         container.addChild(sprite);
+      }
+   }
+}
+
+function drawSlide(number) {
+   let slide = configuration.slides[number];
+   let container = new Container();
    //draw the background
    let backgroundTexture = resources[slide.background].texture;
    let tileHeight = backgroundTexture.baseTexture.height,
@@ -69,7 +96,7 @@ function drawSlide() {
          let tile = new Sprite(backgroundTexture);
          tile.y = row * tileHeight;
          tile.x = col * tileWidth;
-         app.stage.addChild(tile);
+         container.addChild(tile);
       }
    }
    //draw all the lines
@@ -82,14 +109,15 @@ function drawSlide() {
       });
       text.x = line.x || 0;
       text.y = line.y || 0;
-      app.stage.addChild(text);
+      container.addChild(text);
    }
+   return container;
 }
 
-function addPlayer(){
+function addPlayer(container){
    //use https://www.leshylabs.com/apps/sstool/
    let playerSp = resources[imageNames.player].spritesheet;
-   player = new Player(playerSp, app.stage);
+   player = new Player(playerSp, container);
 }
 
 function gameLoop(delta){
