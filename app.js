@@ -1,49 +1,49 @@
 import {Player} from './player.js';
 import {keyboard} from './keyboard.js';
+import {configuration} from './configuration.js';
 
 //Aliases
 let Application = PIXI.Application,
-   loader = PIXI.loader,
-   resources = PIXI.loader.resources,
+   loader = PIXI.Loader.shared,
+   Text = PIXI.Text,
+   resources = loader.resources,
    Sprite = PIXI.Sprite,
    Rectangle = PIXI.Rectangle,
    Texture = PIXI.Texture,
    TextureCache = PIXI.utils.TextureCache;
 
+let target = document.getElementById('game');
+
+let size = configuration.size;
 //Create a Pixi Application
-let app = new Application({
-   width: window.innerWidth, 
-   height: window.innerHeight
-});
+let app = new Application({width: size.width, height: size.height});
 
 let player;
 //Set the game state 
 let state = play;
 
 let imageNames = {
-   hunterAtlas: 'images/treasureHunter.json',
    player: 'images/player.json'
 }
 
 //Add the canvas to the document
-document.body.appendChild(app.view);
+target.appendChild(app.view);
 
 //load images and call the setup function when done
 loader.add([
-   imageNames.hunterAtlas,
-   imageNames.player
+   imageNames.player,
+   'images/background/blue.png',
+   'images/background/brown.png',
+   'images/background/gray.png',
+   'images/background/green.png',
+   'images/background/pink.png',
+   'images/background/purple.png',
+   'images/background/yellow.png'
 ]).load(setup);
 
 function setup(){
-  //Use TextureCache to create the sprites based on the atlas 
-   //This is only one of three ways of making sprites using texture atlas
-   //see: https://github.com/kittykatattack/learningPixi#creating-sprites-from-a-loaded-texture-atlas
-   let dungeon = new Sprite(
-      resources[imageNames.hunterAtlas].textures['dungeon.png']
-   );
-   app.stage.addChild(dungeon);
+   drawSlide();
    addPlayer();
-
 
    app.ticker.add(delta => gameLoop(delta));
    let left = keyboard("ArrowLeft"),
@@ -54,6 +54,36 @@ function setup(){
    right.release = () => { player.stopMoving(); }
    left.press = () => { player.moveLeft(); }
    left.release = () => { player.stopMoving(); }
+}
+
+function drawSlide() {
+   let slide = configuration.slides[0];
+   //draw the background
+   let backgroundTexture = resources[slide.background].texture;
+   let tileHeight = backgroundTexture.baseTexture.height,
+      tileWidth = backgroundTexture.baseTexture.width;
+   let rows = Math.floor(size.height / tileHeight);
+   let cols = Math.floor(size.width / tileWidth);
+   for (var row = 0; row <= rows; row++) {
+      for (var col = 0; col <= cols; col++) {
+         let tile = new Sprite(backgroundTexture);
+         tile.y = row * tileHeight;
+         tile.x = col * tileWidth;
+         app.stage.addChild(tile);
+      }
+   }
+   //draw all the lines
+   let lines = slide.lines;
+   for (const line of lines) {
+      let text = new Text(line.content, {
+         fontFamily: 'pixellari', 
+         fontSize: line.size || 16, 
+         fill: line.color || 'black',
+      });
+      text.x = line.x || 0;
+      text.y = line.y || 0;
+      app.stage.addChild(text);
+   }
 }
 
 function addPlayer(){

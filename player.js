@@ -16,11 +16,12 @@ export class Player {
          this.sprites[anim].visible = false;
          this.sprites[anim].animationSpeed = 0.2;
          stage.addChild(this.sprites[anim]);
+         // this.sprites[anim].scale.set(1.5);
       }
       //Create the pixi animated sprite
       this.sprite = this.sprites['idle'];
       this.sprite.x = 50;
-      this.sprite.y = stage.height - 50;
+      this.sprite.y = 50;
       this.sprite.visible = true;
       this.sprite.play();
    }
