@@ -48,7 +48,8 @@ class App {
       //atlas resources to load
       this.imageNames = {
          player: 'images/player.json',
-         terrain: 'images/terrain.json'
+         terrain: 'images/terrain.json',
+         targets: 'images/targets.json'
       }
 
       //Add the canvas to the document
@@ -58,6 +59,7 @@ class App {
       loader.add([
          this.imageNames.player,
          this.imageNames.terrain,
+         this.imageNames.targets,
          'images/background/blue.png',
          'images/background/brown.png',
          'images/background/gray.png',
@@ -70,7 +72,7 @@ class App {
 
    setup(){
       //Draw the first slide
-      this.slideContainer = this.drawSlide(0);
+      this.drawSlide(0);
       this.app.ticker.add(delta => this.gameLoop(delta));
       let left = keyboard("ArrowLeft"),
          up = keyboard("ArrowUp"),
@@ -89,7 +91,7 @@ class App {
       if(this.slideIndex > 0) {
          this.slideContainer.visible = false;
          this.slideContainer.destroy();
-         this.slideContainer = this.drawSlide(this.slideIndex-1);
+         this.drawSlide(this.slideIndex-1);
       }
    }
 
@@ -99,17 +101,25 @@ class App {
       if(this.slideIndex < total-1){
          this.slideContainer.visible = false;
          this.slideContainer.destroy();
-         this.slideContainer = this.drawSlide(this.slideIndex+1);
+         this.drawSlide(this.slideIndex+1);
       }
    }
 
    drawSlide(number) {
       this.slide = configuration.slides[number];
       this.slideIndex = number;
-      let container = new Container();
-      this.drawBackground(container);
-      //draw all the lines
+      this.slideContainer = new Container();
+      this.drawBackground();
+      this.drawTargets();
+      this.drawTerrain();
+      this.addPlayer();
+      //Add it to the app stage
+      this.app.stage.addChild(this.slideContainer);
+   }
+
+   drawTargets(){
       let lines = this.slide.lines;
+      //draw all the lines
       for (const line of lines) {
          let text = new Text(line.content, {
             fontFamily: 'pixellari', 
@@ -118,16 +128,25 @@ class App {
          });
          text.x = line.x || 0;
          text.y = line.y || 0;
-         container.addChild(text);
+         this.slideContainer.addChild(text);
       }
-      this.drawTerrain(container);
-      this.addPlayer(container);
-      //Add it to the app stage
-      this.app.stage.addChild(container);
-      return container;
+      //total of lines to draw == total number of targets
+      let totalTargets = lines.length;
+      let spacing = (this.size.width-100)/totalTargets;
+      let targetSpritesheet = resources[this.imageNames.targets].spritesheet;
+      for (var i = 0; i < totalTargets; i++) {
+         let targetSprite = new PIXI.AnimatedSprite(
+            targetSpritesheet.animations['kiwi']
+         );
+         targetSprite.y = 420;
+         targetSprite.x = spacing * (i+1);
+         this.slideContainer.addChild(targetSprite);
+         targetSprite.animationSpeed = 0.2;
+         targetSprite.play();
+      }
    }
 
-   drawBackground(container) {
+   drawBackground() {
       //draw the background
       let backgroundTexture = resources[this.slide.background].texture;
       let tileHeight = backgroundTexture.baseTexture.height,
@@ -139,12 +158,12 @@ class App {
             let tile = new Sprite(backgroundTexture);
             tile.y = row * tileHeight;
             tile.x = col * tileWidth;
-            container.addChild(tile);
+            this.slideContainer.addChild(tile);
          }
       }
    }
 
-   drawTerrain(container) {
+   drawTerrain() {
       this.slide = configuration.slides[0];
       let terrain = this.slide.terrain;
       let spriteMap = terrain.sprites;
@@ -159,16 +178,16 @@ class App {
             var sprite = new Sprite(resources[this.imageNames.terrain].textures[spriteName]);
             sprite.x = x;
             sprite.y = y;
-            container.addChild(sprite);
+            this.slideContainer.addChild(sprite);
          }
       }
    }
 
 
-   addPlayer(container){
+   addPlayer(){
       //use https://www.leshylabs.com/apps/sstool/
       let playerSp = resources[this.imageNames.player].spritesheet;
-      this.player = new Player(playerSp, container);
+      this.player = new Player(playerSp, this.slideContainer);
    }
 
    gameLoop(delta){
