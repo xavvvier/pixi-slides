@@ -32,7 +32,7 @@ export class Player {
       //Get the sprite's parent Container, usually is the same slideContainer
       let container = this.sprite.parent;
       let min = 30,
-         max = configuration.size.width - 30,
+         max = configuration.size.width - 40,
          newXPosition = this.sprite.x + this.vx;
       //If the player is too close (40px) to the borders, don't move it
       if(newXPosition > min && newXPosition < max){
