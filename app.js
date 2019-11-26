@@ -15,35 +15,27 @@ let Application = PIXI.Application,
 
 class App {
 
-   //HTML element to inject the PIXI Application
-   targetElement;
-
-   //Holds the reference to the current slide container
-   slideContainer;
-
-   //Holds the current slide configuration
-   slide;
-   //Which slide index is selected
-   slideIndex;
-
-   //The PIXI application
-   app;
-
-   //size of canvas element
-   size;
-
-   player;
-   
-   targets = [];
-
-   size = configuration.size;
 
    constructor(targetElement){
+      //HTML element to inject the PIXI Application
       this.targetElement = targetElement;
       this.init();
    }
 
    init(){
+      //Holds the reference to the current slide container
+      this.slideContainer=null;
+      //Holds the current slide configuration
+      this.slide=null;
+      //Which slide index is selected
+      this.slideIndex=null;
+      //The PIXI application
+      this.app=null;
+      //size of canvas element
+      this.size=null;
+      this.player=null;
+      this.targets = [];
+      this.size = configuration.size;
       this.size = configuration.size;
       //Create the PIXI Application
       this.app = new Application({width: this.size.width, height: this.size.height});
@@ -51,8 +43,9 @@ class App {
       this.imageNames = {
          player: 'images/player.json',
          terrain: 'images/terrain.json',
-         targets: 'images/targets.json'
-      }
+         targets: 'images/targets.json',
+         flag: 'images/flag-optimized.json'
+      };
 
       //Add the canvas to the document
       this.targetElement.appendChild(this.app.view);
@@ -62,6 +55,7 @@ class App {
          this.imageNames.player,
          this.imageNames.terrain,
          this.imageNames.targets,
+         this.imageNames.flag,
          'images/background/blue.png',
          'images/background/brown.png',
          'images/background/gray.png',
@@ -70,6 +64,7 @@ class App {
          'images/background/purple.png',
          'images/background/yellow.png'
       ]).load(() => this.setup());
+
    }
 
    setup(){
@@ -110,6 +105,7 @@ class App {
    drawSlide(number) {
       this.slide = configuration.slides[number];
       this.slideIndex = number;
+      this.currentLine = -1;
       this.slideContainer = new Container();
       this.drawBackground();
       this.drawTargets();
@@ -127,9 +123,12 @@ class App {
       this.targets = [];
       let spacing = (this.size.width-100)/totalTargets;
       let targetSpritesheet = resources[this.imageNames.targets].spritesheet;
+      let animationNames = Object.keys(targetSpritesheet.animations);
+      animationNames.splice(animationNames.indexOf('collected'),1);
       for (var i = 0; i < totalTargets; i++) {
+         let animationName = animationNames[this.randomInt(0, animationNames.length-1)];
          let targetSprite = new PIXI.AnimatedSprite(
-            targetSpritesheet.animations['kiwi']
+            targetSpritesheet.animations[animationName]
          );
          targetSprite.y = 420;
          targetSprite.x = spacing * (i+1);
@@ -142,10 +141,33 @@ class App {
          }
          this.targets.push(targetSprite);
       }
+      //Create the collected target sprite animation
+      this.targetCollectedSprite = new PIXI.AnimatedSprite(
+         targetSpritesheet.animations['collected']
+      );
+      this.targetCollectedSprite.x = 200;
+      this.targetCollectedSprite.y = 200;
+      this.targetCollectedSprite.animationSpeed = 0.2;
+      this.slideContainer.addChild(this.targetCollectedSprite);
+      this.targetCollectedSprite.visible = false;
+      this.targetCollectedSprite.onLoop = () => {
+         this.targetCollectedSprite.stop();
+         this.targetCollectedSprite.visible = false;
+      }
+      //Draw checkpoint flag to advance to the next slide
+      this.checkpointFlag = new PIXI.AnimatedSprite(
+         resources[this.imageNames.flag].spritesheet.animations['flag']
+      );
+      this.checkpointFlag.y = 414;
+      this.checkpointFlag.x = 592;
+      this.checkpointFlag.animationSpeed = 0.2;
+      this.slideContainer.addChild(this.checkpointFlag);
+      this.checkpointFlag.play();
    }
 
-   drawLine(index){
-      let line = this.slide.lines[index];
+   drawNextLine(){
+      this.currentLine = this.currentLine + 1;
+      let line = this.slide.lines[this.currentLine];
       let text = new Text(line.content, {
          fontFamily: 'pixellari', 
          fontSize: line.size || 16, 
@@ -201,7 +223,12 @@ class App {
             if(this.hitRectangle(this.player.sprite, target)){
                target.stop();
                target.visible = false;
-               this.drawLine(i);
+               this.drawNextLine();
+               //Locate and play the collected target animation
+               this.targetCollectedSprite.visible = true;
+               this.targetCollectedSprite.play();
+               this.targetCollectedSprite.x = target.x;
+               this.targetCollectedSprite.y = target.y;
                //Show and play the next target, if there is such
                if(i < this.targets.length-1){
                   this.targets[i+1].visible = true;
@@ -209,6 +236,9 @@ class App {
                }
             }
          }
+      }
+      if(this.hitRectangle(this.player.sprite, this.checkpointFlag)){
+         this.nextSlide();
       }
    }
 
@@ -245,7 +275,7 @@ class App {
       combinedHalfWidths = r1.halfWidth + r2.halfWidth;
       combinedHalfHeights = r1.halfHeight + r2.halfHeight;
       //Check for a collision on the x axis
-      if (Math.abs(vx) < combinedHalfWidths - 30) {
+      if (Math.abs(vx-20) < combinedHalfWidths) {
          //A collision might be occurring. Check for a collision on the y axis
          if (Math.abs(vy) < combinedHalfHeights) {
             //There's definitely a collision happening
@@ -260,6 +290,10 @@ class App {
       }
       //`hit` will be either `true` or `false`
       return hit;
+   }
+
+   randomInt(min, max) {
+     return Math.floor(Math.random() * (max - min + 1)) + min;
    }
 }
 
