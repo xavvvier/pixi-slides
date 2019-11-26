@@ -33,6 +33,8 @@ class App {
    size;
 
    player;
+   
+   targets = [];
 
    size = configuration.size;
 
@@ -119,19 +121,10 @@ class App {
 
    drawTargets(){
       let lines = this.slide.lines;
-      //draw all the lines
-      for (const line of lines) {
-         let text = new Text(line.content, {
-            fontFamily: 'pixellari', 
-            fontSize: line.size || 16, 
-            fill: line.color || 'black',
-         });
-         text.x = line.x || 0;
-         text.y = line.y || 0;
-         this.slideContainer.addChild(text);
-      }
       //total of lines to draw == total number of targets
       let totalTargets = lines.length;
+      //Start with new targets for each slide
+      this.targets = [];
       let spacing = (this.size.width-100)/totalTargets;
       let targetSpritesheet = resources[this.imageNames.targets].spritesheet;
       for (var i = 0; i < totalTargets; i++) {
@@ -142,8 +135,25 @@ class App {
          targetSprite.x = spacing * (i+1);
          this.slideContainer.addChild(targetSprite);
          targetSprite.animationSpeed = 0.2;
-         targetSprite.play();
+         if(i == 0){
+            targetSprite.play();
+         } else {
+            targetSprite.visible = false;
+         }
+         this.targets.push(targetSprite);
       }
+   }
+
+   drawLine(index){
+      let line = this.slide.lines[index];
+      let text = new Text(line.content, {
+         fontFamily: 'pixellari', 
+         fontSize: line.size || 16, 
+         fill: line.color || 'black',
+      });
+      text.x = line.x || 0;
+      text.y = line.y || 0;
+      this.slideContainer.addChild(text);
    }
 
    drawBackground() {
@@ -183,6 +193,24 @@ class App {
       }
    }
 
+   updateTargets(){
+      for (var i = 0; i < this.targets.length; i++) {
+         let target = this.targets[i];
+         if(target.visible){
+            //detect a collision between the player and the current visible target
+            if(this.hitRectangle(this.player.sprite, target)){
+               target.stop();
+               target.visible = false;
+               this.drawLine(i);
+               //Show and play the next target, if there is such
+               if(i < this.targets.length-1){
+                  this.targets[i+1].visible = true;
+                  this.targets[i+1].play();
+               }
+            }
+         }
+      }
+   }
 
    addPlayer(){
       //use https://www.leshylabs.com/apps/sstool/
@@ -193,6 +221,45 @@ class App {
    gameLoop(delta){
       //Update the current game state
       this.player.update();
+      //Detect target collision
+      this.updateTargets();
+   }
+
+   hitRectangle(r1, r2) {
+      let hit, combinedHalfWidths, combinedHalfHeights, vx, vy;
+      //hit will determine whether there's a collision
+      hit = false;
+      //Find the center points of each sprite
+      r1.centerX = r1.x + r1.width / 2;
+      r1.centerY = r1.y + r1.height / 2;
+      r2.centerX = r2.x + r2.width / 2;
+      r2.centerY = r2.y + r2.height / 2;
+      //Find the half-widths and half-heights of each sprite
+      r1.halfWidth = r1.width / 2;
+      r1.halfHeight = r1.height / 2;
+      r2.halfWidth = r2.width / 2;
+      r2.halfHeight = r2.height / 2;
+      //Calculate the distance vector between the sprites
+      vx = r1.centerX - r2.centerX;
+      vy = r1.centerY - r2.centerY;
+      combinedHalfWidths = r1.halfWidth + r2.halfWidth;
+      combinedHalfHeights = r1.halfHeight + r2.halfHeight;
+      //Check for a collision on the x axis
+      if (Math.abs(vx) < combinedHalfWidths - 30) {
+         //A collision might be occurring. Check for a collision on the y axis
+         if (Math.abs(vy) < combinedHalfHeights) {
+            //There's definitely a collision happening
+            hit = true;
+         } else {
+            //There's no collision on the y axis
+            hit = false;
+         }
+      } else {
+         //There's no collision on the x axis
+         hit = false;
+      }
+      //`hit` will be either `true` or `false`
+      return hit;
    }
 }
 
