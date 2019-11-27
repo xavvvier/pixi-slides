@@ -99,6 +99,9 @@ class App {
          this.slideContainer.visible = false;
          this.slideContainer.destroy();
          this.drawSlide(this.slideIndex+1);
+      } else {
+         this.player.goCrazy();
+         this.checkpointFlag.visible = false;
       }
    }
 
