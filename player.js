@@ -8,7 +8,7 @@ export class Player {
    constructor(spriteSheet, container) {
       this.spriteSheet = spriteSheet;
       this.sprites = {};
-      let animations = ['idle', 'run'];
+      let animations = ['idle', 'run', 'doublejump'];
       for (var anim of animations) {
          this.sprites[anim] = new PIXI.AnimatedSprite(
             spriteSheet.animations[anim]
@@ -56,6 +56,10 @@ export class Player {
       this.sprite.scale.x = this.previous.scale.x;
       this.sprite.visible = true;
       this.sprite.play();
+   }
+
+   goCrazy(){
+      this.switchToSprite('doublejump');
    }
 
    moveRight() {

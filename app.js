@@ -19,6 +19,7 @@ class App {
    constructor(targetElement){
       //HTML element to inject the PIXI Application
       this.targetElement = targetElement;
+      this.configuration = configuration;
       this.init();
    }
 
@@ -35,8 +36,7 @@ class App {
       this.size=null;
       this.player=null;
       this.targets = [];
-      this.size = configuration.size;
-      this.size = configuration.size;
+      this.size = this.configuration.size;
       //Create the PIXI Application
       this.app = new Application({width: this.size.width, height: this.size.height});
       //atlas resources to load
@@ -94,19 +94,23 @@ class App {
 
    nextSlide() {
       //Move to the next slide if there are more
-      let total = configuration.slides.length;
+      let total = this.configuration.slides.length;
       if(this.slideIndex < total-1){
          this.slideContainer.visible = false;
          this.slideContainer.destroy();
          this.drawSlide(this.slideIndex+1);
+      } else {
+         this.player.goCrazy();
+         this.checkpointFlag.visible = false;
       }
    }
 
    drawSlide(number) {
-      this.slide = configuration.slides[number];
+      this.slide = this.configuration.slides[number];
       this.slideIndex = number;
-      this.currentLine = -1;
       this.slideContainer = new Container();
+      this.slideContainer.interactive = true;
+      this.slideContainer.click = (e) => console.log('clicked at', e.data.global);
       this.drawBackground();
       this.drawTargets();
       this.drawTerrain();
@@ -117,6 +121,7 @@ class App {
 
    drawTargets(){
       let lines = this.slide.lines;
+      this.currentLine = -1;
       //total of lines to draw == total number of targets
       let totalTargets = lines.length;
       //Start with new targets for each slide
@@ -196,11 +201,10 @@ class App {
    }
 
    drawTerrain() {
-      this.slide = configuration.slides[0];
       let terrain = this.slide.terrain;
       let spriteMap = terrain.sprites;
       let spriteSize = 16; /*expecting a square sprite*/
-      let columns = Math.floor(configuration.size.width/spriteSize); /*how many columns there are*/
+      let columns = Math.floor(this.size.width/spriteSize); /*how many columns there are*/
       for (var i = 0, len = terrain.map.length; i < len; i++) {
          var x = (i % columns) * spriteSize;
          var y = Math.floor(i / columns) * spriteSize;
@@ -298,6 +302,6 @@ class App {
 }
 
 
-new App(document.getElementById('game'));
+new App(document.getElementById('game'), configuration);
 
 
