@@ -56,7 +56,7 @@ export const configuration = {
       {
          lines: [
             {x: 175, y: 50,  content: "Javier Gonzalez", size: 40, color: 'black'},
-            {x: 70, y: 140, content: "NSCC 2nd-year student", size: 25, color: 'blue'},
+            {x: 70, y: 140, content: "2nd-year student @ NSCC", size: 25, color: 'blue'},
             {x: 70, y: 220, content: "IT Web Development", size: 25},
             {x: 70 , y: 290, content: "Why NSCC?", size: 25 },
             {x: 70 , y: 360, content: "Canada...", size: 25, color: 'red' },
@@ -76,7 +76,7 @@ export const configuration = {
             {x: 50, y: 230, content: "Teamwork", size: 22, color: 'blue'},
             {x: 50, y: 260, content: "Coordinate efforts with different people to achieve a common cause", size: 16, color: 'blue'},
             {x: 50, y: 330, content: "Adaptability", size: 22, color: 'purple'},
-            {x: 50, y: 360, content: "Adjust to an ever changing environment", size: 16, color: 'purple'}
+            {x: 50, y: 360, content: "Adjust to an ever-changing environment", size: 16, color: 'purple'}
          ],
          background: 'images/background/yellow.png', /*select anyone in the images/background/ folder*/
          terrain: {
@@ -90,7 +90,6 @@ export const configuration = {
             {x: 60, y: 160, content: "Functional programming", size: 32},
             {x: 60, y: 220, content: "Fault-tolerant systems", size: 32},
             {x: 60, y: 280, content: "Scalable applications", size: 32},
-            {x: 60, y: 340, content: "Postgresql", size: 32},
             {x: 340, y: 340, content: "Erlang Developer", size: 32, color: '#a90832'},
          ],
          background: 'images/background/green.png', /*select anyone in the images/background/ folder*/
@@ -107,6 +106,19 @@ export const configuration = {
             {x: 60, y: 280, content: "Audiogram (SOS)", size: 32},
          ],
          background: 'images/background/purple.png', /*select anyone in the images/background/ folder*/
+         terrain: {
+            map: defaultMap,
+            sprites: defaultSprites
+         }
+      },
+      {
+         lines: [
+            {x: 180, y: 57, content: "Business Benefits", size: 40, color: 'black'},
+            {x: 30, y: 160, content: "High productivity - Team work", size: 32},
+            {x: 30, y: 220, content: "Professional developer - Problem solving", size: 32},
+            {x: 30, y: 280, content: "Creativity & Innovation - Adaptability", size: 32},
+         ],
+         background: 'images/background/yellow.png', /*select anyone in the images/background/ folder*/
          terrain: {
             map: defaultMap,
             sprites: defaultSprites
